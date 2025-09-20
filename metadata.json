@@ -1,0 +1,5 @@
+{
+  "name": "Poster Map Creator",
+  "description": "An application to easily create and download high-resolution maps for posters and printed materials using OpenStreetMap.",
+  "requestFramePermissions": []
+}

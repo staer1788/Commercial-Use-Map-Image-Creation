@@ -1,0 +1,113 @@
+<div class="flex h-screen bg-gray-50">
+  <!-- Control Panel -->
+  <div class="w-96 p-6 bg-white shadow-lg overflow-y-auto flex flex-col">
+    <div class="flex-grow">
+      <div class="flex items-center mb-6">
+        <svg class="w-8 h-8 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503-12.495 1.25-1.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06l-1.25 1.25m-1.25-1.25-2.25 2.25m10.5-6.375a.75.75 0 0 1-1.06 0l-1.25-1.25a.75.75 0 0 1 0-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l1.25 1.25a.75.75 0 0 1 0 1.06M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <h1 class="text-2xl font-bold text-gray-800">Poster Map Creator</h1>
+      </div>
+      <p class="text-gray-600 mb-8">Create beautiful, high-resolution maps for your posters and print media.</p>
+
+      <!-- Address Search -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">1. Find Location</h2>
+        <div class="space-y-4">
+          <div>
+            <label for="city" class="block text-sm font-medium text-gray-600">City / Ward (市区町村)</label>
+            <input #cityInput id="city" type="text" [value]="address().city" (input)="updateCity(cityInput.value)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 東京都千代田区">
+          </div>
+          <div>
+            <label for="town" class="block text-sm font-medium text-gray-600">Town / Area (町域)</label>
+            <input #townInput id="town" type="text" [value]="address().town" (input)="updateTown(townInput.value)" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="e.g., 丸の内">
+          </div>
+          <button (click)="searchLocation()" [disabled]="isLoading()" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed">
+            @if(isLoading()){
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Searching...</span>
+            } @else {
+              <span>Search</span>
+            }
+          </button>
+        </div>
+      </div>
+      
+      @if (searchError()) {
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+          <p class="font-bold">Search Failed</p>
+          <p>{{ searchError() }}</p>
+        </div>
+      }
+
+      <!-- Customization -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">2. Customize Map</h2>
+        <div class="space-y-3">
+          <label class="flex items-center">
+            <input type="checkbox" [checked]="showStations()" (change)="toggleStations($event)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="ml-3 text-sm text-gray-700">Show Stations (駅)</span>
+          </label>
+          <label class="flex items-center">
+            <input type="checkbox" [checked]="showBusStops()" (change)="toggleBusStops($event)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <span class="ml-3 text-sm text-gray-700">Show Bus Stops (バス停)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Selected Point -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">Selected Point</h2>
+        @if (mapService.selectedLocation(); as loc) {
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+            <p class="font-medium text-blue-800">Pinned Location:</p>
+            <p class="text-blue-700 mt-1 font-mono">
+              Lat: {{ loc.lat.toFixed(5) }}<br>
+              Lon: {{ loc.lon.toFixed(5) }}
+            </p>
+            <button (click)="clearMapSelection()" class="mt-3 text-sm text-red-600 hover:text-red-800 font-medium focus:outline-none focus:underline">
+              Clear Pin
+            </button>
+          </div>
+        } @else {
+          <p class="text-sm text-gray-500 italic">Click on the map to place a pin at a specific point.</p>
+        }
+      </div>
+    </div>
+    
+    <!-- Download -->
+    <div>
+        <h2 class="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">3. Download</h2>
+        <button (click)="downloadMap()" [disabled]="isDownloading()" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed">
+           @if(isDownloading()){
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Preparing...</span>
+            } @else {
+              <span>Download Map (PNG)</span>
+            }
+        </button>
+    </div>
+  </div>
+
+  <!-- Map Area -->
+  <div class="flex-1 relative">
+    <div id="map" class="h-full w-full"></div>
+    @if(isMapLoading()) {
+      <div class="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-[1000]">
+        <div class="text-white text-lg flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          <span>Loading map data...</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>
